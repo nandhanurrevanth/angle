@@ -69,6 +69,8 @@ class Display
     const char *getExtensionString() const;
     const char *getVendorString() const;
 
+    EGLNativeDisplayType getNativeDisplay() { return mDisplayId; }
+
   private:
     DISALLOW_COPY_AND_ASSIGN(Display);
 

@@ -264,6 +264,8 @@ class Renderer
     virtual rx::VertexConversionType getVertexConversionType(const gl::VertexFormat &vertexFormat) const = 0;
     virtual GLenum getVertexComponentType(const gl::VertexFormat &vertexFormat) const = 0;
 
+    egl::Display *getDisplay() { return mDisplay; }
+
   protected:
     egl::Display *mDisplay;
 

@@ -33,6 +33,17 @@
 
 #include "libEGL/Surface.h"
 
+#if defined(ANGLE_PLATFORM_WP8) && defined(ANGLE_ENABLE_RENDER_TO_BACK_BUFFER)
+#include "libEGL/Display.h"
+#include "libGLESv2/renderer/d3d/d3d11/RenderTarget11.h"
+#include "common/winrtutils.h"
+#include "common/winrtangle.h"
+#include "common/winrtangleutils.h"
+using namespace Microsoft::WRL;
+using namespace ABI::Windows::UI::Core;
+using namespace Windows::Foundation;
+#endif
+
 #undef near
 #undef far
 
@@ -1363,6 +1374,40 @@ bool Context::applyRenderTarget(GLenum drawMode, bool ignoreViewport)
     Framebuffer *framebufferObject = mState.getDrawFramebuffer();
     ASSERT(framebufferObject && framebufferObject->completeness() == GL_FRAMEBUFFER_COMPLETE);
 
+#if defined(ANGLE_PLATFORM_WP8) && defined(ANGLE_ENABLE_RENDER_TO_BACK_BUFFER)
+    FramebufferMap::iterator framebuffer = mFramebufferMap.find(0);
+    if(framebuffer != mFramebufferMap.end())
+    {
+        ComPtr<IWinrtEglWindow> iWinRTWindow;
+        EGLNativeDisplayType nativeDisplay = mRenderer->getDisplay()->getNativeDisplay();
+        HRESULT result = winrtangleutils::getIWinRTWindow(nativeDisplay, &iWinRTWindow);
+        if(SUCCEEDED(result)) 
+        {
+            if(winrtangleutils::hasIPhoneXamlWindow(iWinRTWindow))
+            {
+                ComPtr<IWinPhone8XamlD3DWindow> iPhoneWindow;
+                result = winrtangleutils::getIPhoneXamlWindow(nativeDisplay, &iPhoneWindow);
+                ASSERT(SUCCEEDED(result));
+                
+                ComPtr<ID3D11Texture2D> backBuffer;
+                result = winrtangleutils::getBackBuffer(iPhoneWindow, &backBuffer);
+                ASSERT(SUCCEEDED(result));
+                
+                gl::FramebufferAttachment *colorbuffer = framebuffer->second->getColorbuffer(0);
+                rx::RenderTarget11 *renderTarget = rx::RenderTarget11::makeRenderTarget11(colorbuffer->getRenderTarget());
+                if(backBuffer.Get() != renderTarget->getTexture())
+                {
+                    renderTarget->setTexture(backBuffer.Get());
+
+                    ComPtr<ID3D11RenderTargetView> rtv;
+                    result = winrtangleutils::getID3D11RenderTargetView(iPhoneWindow, &rtv);
+                    ASSERT(SUCCEEDED(result));
+                    renderTarget->setRenderTarget(rtv.Get());
+                }
+            }
+        }
+    }
+#endif
     mRenderer->applyRenderTarget(framebufferObject);
 
     float nearZ, farZ;

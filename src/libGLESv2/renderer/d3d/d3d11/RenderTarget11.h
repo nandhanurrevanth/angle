@@ -34,6 +34,8 @@ class RenderTarget11 : public RenderTarget
     ID3D11RenderTargetView *getRenderTargetView() const;
     ID3D11DepthStencilView *getDepthStencilView() const;
     ID3D11ShaderResourceView *getShaderResourceView() const;
+    void setTexture(ID3D11Resource *texture) {mTexture = texture;}
+    void setRenderTarget(ID3D11RenderTargetView *renderTarget) {mRenderTarget = renderTarget;}
 
     unsigned int getSubresourceIndex() const;
 
