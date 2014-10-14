@@ -1,4 +1,4 @@
-LIBRARY	libEGL
+LIBRARY	libEGL_phone
 EXPORTS
 	eglBindAPI                      @14
 	eglBindTexImage                 @20
