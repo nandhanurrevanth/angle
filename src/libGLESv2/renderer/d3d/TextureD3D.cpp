@@ -21,6 +21,9 @@
 #include "libGLESv2/renderer/d3d/ImageD3D.h"
 #include "libGLESv2/renderer/d3d/TextureD3D.h"
 #include "libGLESv2/renderer/d3d/TextureStorage.h"
+#ifdef ANGLE_PLATFORM_WINRT
+#include "libGLESv2/renderer/d3d/d3d11/Renderer11.h"
+#endif
 
 namespace rx
 {
@@ -186,7 +189,12 @@ bool TextureD3D::fastUnpackPixels(const gl::PixelUnpackState &unpack, const void
 
 GLint TextureD3D::creationLevels(GLsizei width, GLsizei height, GLsizei depth) const
 {
+#ifdef ANGLE_PLATFORM_WINRT
+    rx::Renderer11 *renderer11 = rx::Renderer11::makeRenderer11(mRenderer);
+    if ((gl::isPow2(width) && gl::isPow2(height) && gl::isPow2(depth)) || mRenderer->getRendererExtensions().textureNPOT || renderer11->getFeatureLevel() >= D3D_FEATURE_LEVEL_10_0)
+#else
     if ((gl::isPow2(width) && gl::isPow2(height) && gl::isPow2(depth)) || mRenderer->getRendererExtensions().textureNPOT)
+#endif
     {
         // Maximum number of levels
         return gl::log2(std::max(std::max(width, height), depth)) + 1;
