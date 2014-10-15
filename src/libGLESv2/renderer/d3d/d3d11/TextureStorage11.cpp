@@ -474,7 +474,10 @@ TextureStorage11_2D::TextureStorage11_2D(Renderer *renderer, GLenum internalform
         D3D11_TEXTURE2D_DESC desc;
         desc.Width = width;      // Compressed texture size constraints?
         desc.Height = height;
+        Renderer11 *renderer11 = Renderer11::makeRenderer11(renderer);
         desc.MipLevels = ((levels > 0) ? (mTopLevel + levels) : 0);
+        if(renderer11->getFeatureLevel() < D3D_FEATURE_LEVEL_10_0)
+            desc.MipLevels = 1;
         desc.ArraySize = 1;
         desc.Format = mTextureFormat;
         desc.SampleDesc.Count = 1;

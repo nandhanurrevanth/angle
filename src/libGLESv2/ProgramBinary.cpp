@@ -28,6 +28,10 @@
 #include "libGLESv2/DynamicHLSL.h"
 #include "common/blocklayout.h"
 
+#ifdef ANGLE_PLATFORM_WINRT
+#include "libGLESv2/renderer/d3d/d3d11/Renderer11.h"
+#endif
+
 #undef near
 #undef far
 
@@ -375,7 +379,12 @@ bool ProgramBinary::usesPointSize() const
 
 bool ProgramBinary::usesPointSpriteEmulation() const
 {
+#ifdef ANGLE_PLATFORM_WINRT
+    rx::Renderer11 *renderer11 = rx::Renderer11::makeRenderer11(mRenderer);
+    return mUsesPointSize && renderer11->getFeatureLevel() >= D3D_FEATURE_LEVEL_10_0;
+#else
     return mUsesPointSize && mRenderer->getMajorShaderModel() >= 4;
+#endif
 }
 
 bool ProgramBinary::usesGeometryShader() const
